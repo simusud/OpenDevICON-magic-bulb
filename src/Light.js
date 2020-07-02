@@ -1,9 +1,14 @@
 import React from 'react';
 import Bulb from 'react-bulb';
  
-export default (props) => (
-  <Bulb
-    size={60}
+const Light= (props) => (
+    <div className="light">
+        <Bulb
+    size={40}
     color={props.color}
   />
+
+    </div>
+  
 );
+export default Light;

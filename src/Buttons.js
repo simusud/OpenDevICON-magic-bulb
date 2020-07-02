@@ -5,8 +5,9 @@ import { IconExtension } from "@magic-ext/icon";
 import IconService from "icon-sdk-js";
 import Light from './Light';
 
-const { IconBuilder, IconAmount, IconConverter } = IconService;
-
+const { IconBuilder, IconAmount, IconConverter,HttpProvider} = IconService;
+const httpProvider = new HttpProvider('https://bicon.net.solidwallet.io/api/v3');
+const iconService = new IconService(httpProvider);
 const magic = new Magic("pk_test_BAD78299B2E4EA9D", {
   extensions: {
     icon: new IconExtension({
@@ -32,7 +33,7 @@ class Buttons extends React.Component{
       }
       
     
-    handlerSendTransaction = async (color) => {
+    handlerSendTransaction = async (key) => {
         
 
         const metadata = await magic.user.getMetadata();
@@ -48,7 +49,7 @@ class Buttons extends React.Component{
           .timestamp(new Date().getTime() * 1000)
           .method('set_color')
           .params({
-            "_color": "BLUE"
+            "_color": key
           })
           .build();
           console.log("called")
@@ -56,26 +57,51 @@ class Buttons extends React.Component{
     
         // setTxHash(txhash);
         this.setState({tx:txhash,
-            color:this.value
+            // color:.target.id
             
         })
-        
+        console.log(key)
         console.log("transaction result", txhash);
     };
-    onInputChange=(event)=>{
-        this.setState({color:this.value});
-        console.log(this.color)
-    };
+    // onInputChange=(event)=>{
+    //     console.log(event.target.value)
+    //     this.setState({color:event.target.value});
+       
+    // };
+    getTransaction=async()=>{
+        const call = new IconBuilder.CallBuilder()
+        .to('cxd9d1950dfdaad7fcc73a1803d1ea0fa0f6993a04')
+        .method('get_color')
+        .build()
+
+        // const txnPayload = {
+        //     jsonrpc: '2.0',
+        //     method: 'icx_sendTransaction',
+        //     params: IconConverter.toRawTransaction(txnData),
+        //     id: 50889,
+        //   };
+        
+        const result = await iconService.call(call).execute();
+        // const response= await IconBuilder.Call(txObj);
+        console.log(result)
+
+    this.setState({color:result})
+        
+    }
 
     render(){
         return(
             <div className='btn'>
-                <Light color='Red'/>
-                <button onClick={this.handlerSendTransaction} value='RED' onChahange={this.OnInputChange}>Red</button>
-                <button onClick={this.handlerSendTransaction }>Green</button>
-                <button onClick={'/'}>Blue</button>
-                <button onClick={'/'}>Yellow</button>
+                
+                <button onClick={()=>this.handlerSendTransaction('RED')} >Red</button>
+                <button onClick={()=>this.handlerSendTransaction('GREEN') }>Green</button>
+                <button onClick={()=>this.handlerSendTransaction('BLUE')}>Blue</button>
+                <button onClick={()=>this.handlerSendTransaction('YELLOW')}>Yellow</button>
+                <button onClick={this.getTransaction}>Refresh</button>
 
+                <div className="bulb">
+                    <Light color={this.state.color}/>   
+                </div>
                 <div>
                     {this.state.tx ? (
                     <div>
@@ -86,6 +112,7 @@ class Buttons extends React.Component{
                             target="_blank"
                         >
                             {this.state.tx}
+                            
                         </a>
                         </div>
                     </div>
